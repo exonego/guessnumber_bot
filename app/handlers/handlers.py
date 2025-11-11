@@ -15,5 +15,5 @@ router.include_router(start_dialog)
 
 # This handler reacts to the start command
 @router.message(CommandStart())
-async def process_command_start(message: Message, dialog_manager: DialogManager):
+async def process_cmd_start(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
