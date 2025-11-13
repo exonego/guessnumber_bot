@@ -4,8 +4,8 @@ from aiogram.types import Message
 from aiogram_dialog import DialogManager, StartMode
 
 
-from app.state_groups.state_groups import StartSG
-from app.dialogs.start_dialog import start_dialog
+from app.bot.state_groups.state_groups import StartSG
+from app.bot.dialogs.start_dialog import start_dialog
 
 
 # Include dialog

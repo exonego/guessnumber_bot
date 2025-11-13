@@ -7,7 +7,7 @@ from aiogram.enums import ParseMode
 from aiogram_dialog import setup_dialogs
 
 from config import load_config
-from app.handlers.handlers import router
+from app.bot.handlers.handlers import router
 
 # Logger initialization
 logger = logging.getLogger(__name__)
