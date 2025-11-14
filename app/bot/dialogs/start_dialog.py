@@ -42,6 +42,7 @@ async def process_input_num(
         await dialog_manager.next()
         await dialog_manager.show()
         await dialog_manager.done()
+
     else:
         if num > dialog_manager.dialog_data.get("guessed"):
             dialog_manager.dialog_data.update(

@@ -4,13 +4,15 @@ from aiogram_dialog.test_tools import BotClient, MockMessageManager
 from aiogram_dialog.test_tools.keyboard import InlineButtonTextLocator
 
 
+@pytest.mark.parametrize("full", [[True], [False]])
 @pytest.mark.asyncio
-async def test_dialog(performers, monkeypatch):
+async def test_dialog(performers, monkeypatch, full: bool):
     monkeypatch.setattr("app.bot.dialogs.start_dialog.randint", lambda x, y: 42)
     client: BotClient = performers["client"]
     message_manager: MockMessageManager = performers["message_manager"]
 
     # Start
+    message_manager.reset_history()
     await client.send("/start")
 
     first_message = message_manager.one_message()
@@ -27,31 +29,48 @@ async def test_dialog(performers, monkeypatch):
     first_message = message_manager.one_message()
     assert "Добро пожаловать в числовую угадайку!" in first_message.text
 
-    # Click yes
+    match full:
+        case True:
+            # Click yes
+            message_manager.reset_history()
+            callback_id = await client.click(
+                first_message, InlineButtonTextLocator("Конечно!")
+            )
+
+            message_manager.assert_answered(callback_id)
+            second_message = message_manager.one_message()
+            assert "Отлично!" in second_message.text
+
+            # Not num
+            message_manager.reset_history()
+            await client.send("d")
+
+            not_num_message = message_manager.one_message()
+            assert not_num_message.text == "Некорректное число!"
+
+            # Wrong guess
+            message_manager.reset_history()
+            await client.send("1")
+
+            wrong_message = message_manager.one_message()
+            assert "Ваше число" in wrong_message.text
+
+            # Right guess
+            message_manager.reset_history()
+            await client.send("42")
+
+            right_message = message_manager.first_message()
+            assert "Вы угадали!" in right_message.text
+        case False:
+            # Click no
+            message_manager.reset_history()
+            callback_id = await client.click(
+                first_message, InlineButtonTextLocator("Нет!")
+            )
+            message_manager.assert_answered(callback_id)
+            second_message = message_manager.one_message()
+            assert "Ладно(" in second_message.text
+
+    # Try to send message not in dialog_context
     message_manager.reset_history()
-    callback_id = await client.click(first_message, InlineButtonTextLocator("Конечно!"))
-
-    message_manager.assert_answered(callback_id)
-    second_message = message_manager.one_message()
-    assert "Отлично!" in second_message.text
-
-    # Not num
-    message_manager.reset_history()
-    await client.send("d")
-
-    not_num_message = message_manager.one_message()
-    assert not_num_message.text == "Некорректное число!"
-
-    # Wrong guess
-    message_manager.reset_history()
-    await client.send("1")
-
-    wrong_message = message_manager.one_message()
-    assert "Ваше число" in wrong_message.text
-
-    # Right guess
-    message_manager.reset_history()
-    await client.send("42")
-
-    right_message = message_manager.first_message()
-    assert "Вы угадали!" in right_message.text
+    await client.send("hey!")
